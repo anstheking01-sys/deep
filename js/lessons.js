@@ -62,6 +62,7 @@ function openLessonModal(id){
  ${existingAttachmentsHtml(l?.attachments)}
  <small class="muted">يمكنك اختيار أكتر من نوع وإضافة أكتر من ملف. الحد الأقصى 50 ميجابايت لكل ملف (للأكبر استخدم رابط Google Drive).</small>
  <label class="muted">الصف الذي سيظهر له الدرس</label><select id="m_grade">${lessonGrades.map(g=>`<option>${g}</option>`).join('')}</select>
+ <label class="muted">مهلة الاستريك (لو الطالب ما حلّش التدريب في المهلة يضيع استريكه)</label>${streakSelectHtml('m_streak',l?.streak_hours)}
  <label class="muted">نقاط XP عند إكمال التدريب</label><input id="m_xp" type="number" min="0" max="10000" value="${l?.xp_reward??10}">
  <h4>📝 أسئلة تدريب بعد الدرس (اختيار من متعدد - حتى 10)</h4><div id="trainingQuestionsBuilder"></div>
  <button type="button" id="addTrainingQuestion" class="btn sec">+ إضافة سؤال تدريب</button>
@@ -85,7 +86,7 @@ async function saveLesson(id){
  }}catch(e){toast(`تعذر رفع المرفق إلى التخزين الخاص: ${e.message||''}`);return;}
  const questions=lessonTrainingQuestions.filter(q=>q.q.trim()&&q.opts.every(o=>o.trim()));
  if(questions.length!==lessonTrainingQuestions.length){toast('اكمل نص السؤال والاختيارات الأربعة أو احذف السؤال الناقص');return;}
- const item={id:id||Date.now(),title,description:document.getElementById('m_desc').value,content:selectedTypes.includes('text')?document.getElementById('m_content').value:'',content_types:selectedTypes,category:'عام',youtube_url:selectedTypes.includes('youtube')?document.getElementById('m_youtube').value.trim():'',grade:document.getElementById('m_grade').value,xp_reward:Math.max(0,Math.min(10000,Number(document.getElementById('m_xp').value)||0)),training_questions:questions,attachments,created_by:currentUser.id,created_at:old?.created_at||new Date().toISOString()};
+ const item={id:id||Date.now(),title,description:document.getElementById('m_desc').value,content:selectedTypes.includes('text')?document.getElementById('m_content').value:'',content_types:selectedTypes,category:'عام',youtube_url:selectedTypes.includes('youtube')?document.getElementById('m_youtube').value.trim():'',grade:document.getElementById('m_grade').value,xp_reward:Math.max(0,Math.min(10000,Number(document.getElementById('m_xp').value)||0)),streak_hours:streakValue('m_streak'),training_questions:questions,attachments,created_by:currentUser.id,created_at:old?.created_at||new Date().toISOString()};
  if(old)Object.assign(old,item);else db.lessons.push(item);try{await saveDB(db);}catch(e){return;}if(removed.length)await removePrivateAttachments(removed);closeModal();renderLessons();toast('تم حفظ الدرس والتدريب والمرفقات على المنصة');
 }
 async function deleteLesson(id){if(!confirm('حذف الدرس؟'))return;const db=getDB(),old=db.lessons.find(x=>String(x.id)===String(id));db.lessons=db.lessons.filter(x=>String(x.id)!==String(id));db.lessonCompletions=(db.lessonCompletions||[]).filter(x=>String(x.lesson_id)!==String(id));try{await saveDB(db);acceptRemoteRpcState();if(old)await removePrivateAttachments(old.attachments||[]);renderLessons();toast('تم حذف الدرس');}catch(e){}}
@@ -296,3 +297,11 @@ function driveEmbedUrl(url){
   if((m=url.match(/\/file\/d\/([\w-]+)/))||(m=url.match(/[?&]id=([\w-]+)/)))return `https://drive.google.com/file/d/${m[1]}/preview`;
   return '';
 }
+
+// ---------- مهلة الاستريك (يحددها المستر لكل درس/امتحان) ----------
+function streakSelectHtml(id,current){
+  const opts=[['','الافتراضي: لحد آخر يوم الثلاثاء'],['24','24 ساعة'],['48','48 ساعة (يومين)'],['72','72 ساعة (3 أيام)'],['120','5 أيام'],['168','أسبوع'],['336','أسبوعين'],['0','بدون مهلة (لا يؤثر على الاستريك)']];
+  const cur=current===undefined||current===null||current===''?'':String(current);
+  return `<select id="${id}">${opts.map(([v,t])=>`<option value="${v}" ${v===cur?'selected':''}>${t}</option>`).join('')}</select>`;
+}
+function streakValue(id){const v=document.getElementById(id)?.value;return v===''||v===undefined?null:Number(v);}

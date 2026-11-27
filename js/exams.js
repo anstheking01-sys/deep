@@ -58,6 +58,8 @@ function openExamModal(id){
   gradeInput.value=ex?.grade||'الأول الإعدادي';body.appendChild(gradeInput);
   const xpLabel=document.createElement('label');xpLabel.textContent='نقاط XP عند إكمال الامتحان';xpLabel.className='muted';body.appendChild(xpLabel);
   const xpInput=document.createElement('input');xpInput.id='ex_xp';xpInput.type='number';xpInput.min='0';xpInput.max='10000';xpInput.value=ex?.xp_reward??50;body.appendChild(xpInput);
+  const stLabel=document.createElement('label');stLabel.textContent='مهلة الاستريك (لو الطالب ما حلّش الامتحان في المهلة يضيع استريكه)';stLabel.className='muted';body.appendChild(stLabel);
+  const stWrap=document.createElement('div');stWrap.innerHTML=streakSelectHtml('ex_streak',ex?.streak_hours);body.appendChild(stWrap);
   
   const qsContainer=document.createElement('div');
   qsContainer.id='ex_qs';
@@ -165,9 +167,9 @@ async function saveExamV3(id){
   const db=getDB();
   if(id){
     const old=db.exams.find(x=>x.id===id);
-    if(old){old.title=title; old.description=desc; old.duration=duration; old.questions=qs; old.grade=grade; old.xp_reward=xpReward;}
+    if(old){old.title=title; old.description=desc; old.duration=duration; old.questions=qs; old.grade=grade; old.xp_reward=xpReward; old.streak_hours=streakValue('ex_streak');}
   }else{
-    db.exams.push({id:Date.now(),title,description:desc,duration,questions:qs,grade,xp_reward:xpReward,created_by:currentUser.id,created_at:new Date().toISOString()});
+    db.exams.push({id:Date.now(),title,description:desc,duration,questions:qs,grade,xp_reward:xpReward,streak_hours:streakValue('ex_streak'),created_by:currentUser.id,created_at:new Date().toISOString()});
   }
   try{await saveDB(db);}catch(e){return;}
   closeModal();
