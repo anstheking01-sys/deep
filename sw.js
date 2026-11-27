@@ -1,6 +1,6 @@
 // عامل خدمة بسيط: يخزّن ملفات الواجهة فقط (ليفتح التطبيق بسرعة)، ولا يخزّن أي بيانات من Supabase.
 // الشبكة أولًا دائمًا، فلا تبقى نسخة قديمة بعد كل تحديث.
-const CACHE='deep-shell-v20';
+const CACHE='deep-shell-v21';
 const SHELL=['./','index.html','css/style.css','manifest.webmanifest'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).catch(()=>{}));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

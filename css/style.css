@@ -311,21 +311,14 @@ body::after{width:340px;height:340px;right:-100px;bottom:4%;background:#6b5bff;a
 .streak.cold{border-color:#38BDF8;background:linear-gradient(120deg,rgba(56,189,248,.16),transparent 60%),var(--card-color);box-shadow:0 6px 22px rgba(56,189,248,.16)}
 .streak.cold .streak-flame{filter:hue-rotate(160deg) saturate(1.4);animation:none}
 .list-item.notice{border-inline-start:4px solid var(--primary-color)}
-/* قطرة مياه: شكل عضوي بيتموّج بهدوء + حلقات مياه بتنتشر وراها وقت الحركة */
-#pointerGlow{position:fixed;top:0;left:0;width:150px;height:150px;margin:-75px 0 0 -75px;pointer-events:none;z-index:0;opacity:0;
-  border-radius:50% 50% 50% 50%/50% 50% 50% 50%;
-  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.18),rgba(56,189,248,.38) 45%,rgba(14,165,233,.3) 70%,transparent 78%);
-  box-shadow:inset 0 0 26px rgba(255,255,255,.28),inset 0 -10px 24px rgba(14,165,233,.25),0 0 46px rgba(56,189,248,.25);
-  filter:blur(5px);animation:waterMorph 7s ease-in-out infinite;transition:opacity .4s ease;will-change:transform}
-@keyframes waterMorph{0%,100%{border-radius:50% 50% 50% 50%/50% 50% 50% 50%}25%{border-radius:56% 44% 52% 48%/48% 54% 46% 52%}50%{border-radius:46% 54% 44% 56%/54% 46% 56% 44%}75%{border-radius:52% 48% 56% 44%/44% 52% 48% 56%}}
-#pointerGlow.on{opacity:1}
-.water-ring{position:fixed;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;pointer-events:none;z-index:0;border:2px solid rgba(125,211,252,.55);animation:waterRing 1.4s ease-out forwards}
-@keyframes waterRing{from{transform:scale(.4);opacity:.8}to{transform:scale(3.2);opacity:0}}
-:root[data-theme="light"] #pointerGlow{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.5),rgba(14,165,233,.35) 45%,rgba(2,132,199,.25) 70%,transparent 78%);box-shadow:inset 0 0 26px rgba(255,255,255,.7),inset 0 -10px 24px rgba(2,132,199,.2),0 0 40px rgba(14,165,233,.25)}
-:root[data-theme="light"] .water-ring{border-color:rgba(2,132,199,.45)}
-.tap-ripple{position:fixed;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;pointer-events:none;z-index:150;border:2px solid rgba(125,211,252,.85);animation:ripple .85s ease-out forwards}
-@keyframes ripple{to{transform:scale(9);opacity:0}}
-@media (prefers-reduced-motion:reduce){#pointerGlow,.water-ring,.tap-ripple{display:none}}
+/* هالة زرقاء ناعمة صغيرة (بدون حدود) بتتأخر شوية وراء الماوس / اللمس */
+#pointerGlow{position:fixed;top:0;left:0;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;pointer-events:none;z-index:0;opacity:0;
+  background:radial-gradient(circle,rgba(56,189,248,.75) 0%,rgba(56,189,248,.38) 38%,rgba(99,102,241,.14) 66%,transparent 100%);
+  filter:blur(16px);transition:opacity .45s ease;will-change:transform}
+:root[data-theme="light"] #pointerGlow{background:radial-gradient(circle,rgba(14,165,233,.6) 0%,rgba(14,165,233,.3) 38%,rgba(99,102,241,.12) 66%,transparent 100%)}
+.tap-ripple{position:fixed;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;pointer-events:none;z-index:150;border:2px solid rgba(125,211,252,.8);animation:ripple .8s ease-out forwards}
+@keyframes ripple{to{transform:scale(8);opacity:0}}
+@media (prefers-reduced-motion:reduce){#pointerGlow,.tap-ripple{display:none}}
 /* جولة الشرح: بالونة تفكير فوق الزر */
 #guideSpot{position:fixed;z-index:200;border-radius:14px;pointer-events:none;box-shadow:0 0 0 9999px rgba(3,6,14,.62),0 0 0 3px #38BDF8,0 0 22px 4px rgba(56,189,248,.7);transition:all .3s ease}
 #guideBubble{position:fixed;z-index:201;width:min(320px,calc(100vw - 24px));background:var(--card-color);color:var(--text-color,inherit);border:2px solid #38BDF8;border-radius:30px;padding:16px 18px;box-shadow:var(--shadow-lg);text-align:center;animation:fadeIn .25s ease}
