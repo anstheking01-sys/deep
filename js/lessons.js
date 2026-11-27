@@ -128,12 +128,13 @@ function viewLesson(id){
 function buildLessonContent(l){
  let html=`<p>${escapeHtml(l.description||'')}</p><div class="muted">الصف: ${escapeHtml(l.grade||'عام')}</div>${(l.content||'').trim()?`<div class="box" style="white-space:pre-wrap;margin:12px 0">${escapeHtml(l.content)}</div>`:''}`;
  if(l.youtube_url||l.video_url||l.video)html+=`<a class="btn" style="display:block;text-align:center;text-decoration:none;margin:8px 0" target="_blank" rel="noopener" href="${escapeHtml(l.youtube_url||l.video_url||l.video)}">▶ مشاهدة فيديو يوتيوب</a>`;
- (l.attachments||[]).forEach(a=>{if(a.content_type==='image'||(a.type||'').startsWith('image/'))html+=`<div><img alt="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`} style="max-width:100%;border-radius:10px;margin:8px 0"></div>`;else if(a.content_type==='video'||(a.type||'').startsWith('video/'))html+=`<video controls style="width:100%;max-height:360px" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`}></video>`;else html+=`<a class="btn sec" download="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`href="${a.data||''}"`} style="display:block;text-align:center;text-decoration:none;margin:8px 0">📄 ${escapeHtml(a.name)} - فتح/تحميل</a>`;});
+ (l.attachments||[]).forEach(a=>{if(a.content_type==='image'||(a.type||'').startsWith('image/'))html+=`<div><img alt="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`} style="max-width:100%;border-radius:10px;margin:8px 0"></div>`;else if(a.content_type==='video'||(a.type||'').startsWith('video/'))html+=`<video controls style="width:100%;max-height:360px" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`}></video>`;else if(isPdfAtt(a)&&a.path)html+=pdfBtnHtml(a);else html+=`<a class="btn sec" target="_blank" rel="noopener" download="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`href="${a.data||''}"`} style="display:block;text-align:center;text-decoration:none;margin:8px 0">📄 ${escapeHtml(a.name)} - فتح/تحميل</a>`;});
  if(l.image_url||l.imageData)html+=`<img alt="صورة الدرس" src="${l.image_url||l.imageData}" style="max-width:100%">`;
  if(l.pdf_url||l.pdfData)html+=`<a class="btn sec" href="${l.pdf_url||l.pdfData}" download="${escapeHtml(l.pdf_name||'lesson.pdf')}">تحميل PDF</a>`;
  return html;
 }
 async function showLessonContent(id){
+ window.pdfBack=`showLessonContent(${id})`;
  const db=getDB(),l=db.lessons.find(x=>Number(x.id)===Number(id));if(!l){toast('الدرس غير موجود');return;}
  await saveStudentLessonProgress(l,'lesson');
  const qs=l.training_questions||[];
@@ -150,7 +151,7 @@ async function startLessonTraining(id){
  const maxXP=Math.max(0,Number(l.xp_reward??10));
  html+=`<div class="box" style="margin-bottom:12px">كل سؤال له نفس الوزن؛ الدرجة تُحسب بنسبة إجاباتك الصحيحة من إجمالي الأسئلة. الحد الأقصى للمكافأة ${maxXP} XP.</div>`;
  if(completion){const oldGrade=calculateTrainingGrade(completion.score,completion.total,maxXP);const oldPct=Number.isFinite(Number(completion.percentage))?Number(completion.percentage):oldGrade.percentage;const oldReward=completion.xp_earned!==undefined?`المكافأة السابقة: ${Number(completion.xp_earned)||0} XP.`:'تم إكماله قبل تحديث طريقة احتساب النقاط.';html+=`<div class="box" style="margin-bottom:12px">✅ أكملت هذا التدريب من قبل: ${completion.score}/${completion.total} (${oldPct}%). ${oldReward} لن تُضاف نقاط مرة ثانية.</div>`;}
- qs.forEach((q,i)=>{html+=`<div class="exam-question"><b>${i+1}. ${escapeHtml(q.q)}</b>${(q.opts||[]).map((o,j)=>`<label class="exam-opt"><input type="radio" name="lq_${i}" value="${j}"> ${escapeHtml(o)}</label>`).join('')}</div>`;});
+ qs.forEach((q,i)=>{html+=`<div class="exam-question"><b>${i+1}. ${escapeHtml(q.q)}</b>${shuffle((q.opts||[]).map((o,j)=>[o,j])).map(([o,j])=>`<label class="exam-opt"><input type="radio" name="lq_${i}" value="${j}"> ${escapeHtml(o)}</label>`).join('')}</div>`;});
  html+=`<div class="lesson-bottom-actions"><button class="btn" onclick="submitLessonTraining(${l.id})">تسليم التدريب</button><button class="btn sec" onclick="closeModal()">خروج</button></div>`;
  openModal(`تدريب: ${l.title}`,html);
 }
@@ -254,13 +255,44 @@ async function saveResource(id){
  closeModal();renderResources();toast('تم حفظ محتوى الملازم / المنصة');
 }
 async function viewResource(id){
+ window.pdfBack=`viewResource(${id})`;
  const db=getDB(),r=(db.resources||[]).find(x=>Number(x.id)===Number(id));if(!r){toast('المحتوى غير موجود');return;}
  let html=`<p>${escapeHtml(r.description||'')}</p><div class="muted">الصف: ${escapeHtml(r.grade||'عام')}</div>${(r.content||'').trim()?`<div class="box" style="white-space:pre-wrap;margin:12px 0">${escapeHtml(r.content)}</div>`:''}`;
  if(r.youtube_url)html+=`<a class="btn" style="display:block;text-align:center;text-decoration:none;margin:8px 0" target="_blank" rel="noopener" href="${escapeHtml(r.youtube_url)}">▶ مشاهدة فيديو يوتيوب</a>`;
- if(r.drive_url&&/^https:\/\/(drive|docs)\.google\.com\//i.test(r.drive_url))html+=`<a class="btn" style="display:block;text-align:center;text-decoration:none;margin:8px 0" target="_blank" rel="noopener noreferrer" href="${escapeHtml(r.drive_url)}">📂 فتح الملزمة (Google Drive)</a>`;
- (r.attachments||[]).forEach(a=>{if(a.content_type==='image'||(a.type||'').startsWith('image/'))html+=`<div><img alt="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`} style="max-width:100%;border-radius:10px;margin:8px 0"></div>`;else if(a.content_type==='video'||(a.type||'').startsWith('video/'))html+=`<video controls style="width:100%;max-height:360px" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`}></video>`;else html+=`<a class="btn sec" download="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`href="${a.data||''}"`} style="display:block;text-align:center;text-decoration:none;margin:8px 0">📄 ${escapeHtml(a.name)} - فتح/تحميل</a>`;});
+ if(r.drive_url&&driveEmbedUrl(r.drive_url))html+=`<iframe src="${escapeHtml(driveEmbedUrl(r.drive_url))}" allow="autoplay" referrerpolicy="no-referrer" style="width:100%;height:68vh;border:1px solid var(--border-color);border-radius:12px;background:#fff;margin:8px 0"></iframe>`;
+ if(r.drive_url&&/^https:\/\/(drive|docs)\.google\.com\//i.test(r.drive_url))html+=`<a class="btn sec" style="display:block;text-align:center;text-decoration:none;margin:8px 0" target="_blank" rel="noopener noreferrer" href="${escapeHtml(r.drive_url)}">↗ فتح في تاب جديد</a>`;
+ (r.attachments||[]).forEach(a=>{if(a.content_type==='image'||(a.type||'').startsWith('image/'))html+=`<div><img alt="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`} style="max-width:100%;border-radius:10px;margin:8px 0"></div>`;else if(a.content_type==='video'||(a.type||'').startsWith('video/'))html+=`<video controls style="width:100%;max-height:360px" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`src="${a.data||''}"`}></video>`;else if(isPdfAtt(a)&&a.path)html+=pdfBtnHtml(a);else html+=`<a class="btn sec" target="_blank" rel="noopener" download="${escapeHtml(a.name)}" ${a.path?`data-storage-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-storage-path="${escapeHtml(a.path)}"`:`href="${a.data||''}"`} style="display:block;text-align:center;text-decoration:none;margin:8px 0">📄 ${escapeHtml(a.name)} - فتح/تحميل</a>`;});
  html+=`<div class="lesson-bottom-actions"><button class="btn sec" onclick="closeModal()">خروج</button></div>`;
  openModal(r.title,html);
  await hydrateStorageElements(document.getElementById('modalBody'));
 }
 async function deleteResource(id){if(!confirm('حذف هذا المحتوى؟'))return;const db=getDB(),old=(db.resources||[]).find(x=>String(x.id)===String(id));db.resources=(db.resources||[]).filter(x=>String(x.id)!==String(id));try{await saveDB(db);if(old)await removePrivateAttachments(old.attachments||[]);renderResources();toast('تم الحذف');}catch(e){}}
+
+// ---------- عرض PDF داخل الموقع ----------
+function isPdfAtt(a){return a&&(a.content_type==='pdf'||/pdf/i.test(a.type||'')||/\.pdf$/i.test(a.name||''));}
+function pdfBtnHtml(a){
+  return `<button class="btn" style="display:block;width:100%;margin:8px 0" data-pdf-bucket="${escapeHtml(a.bucket||'lesson-files')}" data-pdf-path="${escapeHtml(a.path)}" data-pdf-name="${escapeHtml(a.name||'file.pdf')}" onclick="openPdfViewer(this)">📄 ${escapeHtml(a.name||'PDF')} — عرض</button>`;
+}
+async function openPdfViewer(btn){
+  const {pdfBucket:bucket,pdfPath:path,pdfName:name}=btn.dataset,back=window.pdfBack||'closeModal()';
+  showLoading('جاري فتح الملف...');
+  try{
+    const url=await resolvePrivateFileUrl(bucket,path);
+    const res=await fetch(url);if(!res.ok)throw new Error('تعذر تحميل الملف');
+    const blob=new Blob([await res.blob()],{type:'application/pdf'});
+    if(window.pdfBlobUrl)URL.revokeObjectURL(window.pdfBlobUrl);
+    const obj=window.pdfBlobUrl=URL.createObjectURL(blob);
+    openModal(name,`<iframe src="${obj}" style="width:100%;height:70vh;border:1px solid var(--border-color);border-radius:12px;background:#fff"></iframe>
+      <div class="lesson-bottom-actions"><a class="btn" href="${obj}" download="${escapeHtml(name)}" style="text-decoration:none;text-align:center">⬇ تحميل</a><a class="btn sec" href="${obj}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">↗ تاب جديد</a><button class="btn sec" onclick="${back}">→ رجوع</button></div>
+      <small class="muted">لو الملف مش ظاهر على موبايلك استخدم "تاب جديد" أو "تحميل".</small>`);
+  }catch(e){toast(e.message||'تعذر فتح الملف');}
+  finally{hideLoading();}
+}
+// يحوّل رابط Google Drive/Docs إلى رابط معاينة قابل للتضمين داخل الموقع
+function driveEmbedUrl(url){
+  let m;
+  if(!/^https:\/\/(drive|docs)\.google\.com\//i.test(url||''))return '';
+  if((m=url.match(/\/(document|presentation|spreadsheets)\/d\/([\w-]+)/)))return `https://docs.google.com/${m[1]}/d/${m[2]}/preview`;
+  if((m=url.match(/\/file\/d\/([\w-]+)/))||(m=url.match(/[?&]id=([\w-]+)/)))return `https://drive.google.com/file/d/${m[1]}/preview`;
+  return '';
+}

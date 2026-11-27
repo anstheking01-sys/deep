@@ -83,6 +83,7 @@ function renderStreakCard(){
       <div class="streak-week">${s.week.map(d=>`<div class="sd ${d.done?'done':''} ${d.today?'today':''}"><i>${d.done?'🔥':''}</i><small>${d.label}</small></div>`).join('')}</div>
       ${s.best>1?`<div class="muted" style="margin-top:6px">أفضل سلسلة لك: ${s.best} يوم نشاط</div>`:''}
     </div></div>`;
+  if(grew)setTimeout(()=>{if(typeof playStreakSound==='function')playStreakSound();},900);
   if(grew)setTimeout(()=>toast(`🔥 سلسلتك وصلت ${s.count} ${s.count===1?'يوم':'أيام'}!`),2600);
   lastStreakCount=s.count;
 }

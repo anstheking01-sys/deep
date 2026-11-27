@@ -16,9 +16,9 @@
 <meta name="description" content="منصة DEEP IN PROGRAMMING التعليمية - ديب في البرمجة بإشراف مستر عبد الرحمن">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- سياسة أمان المحتوى: تسمح فقط بمكتبة Supabase وخط Cairo واتصالات Supabase -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' blob: https://*.supabase.co; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co; frame-src blob: https://drive.google.com https://docs.google.com; object-src blob:; base-uri 'self'; form-action 'self'">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=20">
 <!-- Supabase JS CDN: إصدار ثابت بدل @2 المتغير لتجنب كسر المنصة عند تحديث المكتبة -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script>try{var t=localStorage.getItem('deep_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
@@ -101,6 +101,7 @@ window.addEventListener('load',function(){
     </div>
     <div class="top-actions">
       <span id="userNameTop" class="user-name">-</span>
+      <button id="soundBtn" class="icon-btn" onclick="toggleSound()" aria-label="تشغيل/كتم الصوت" title="الصوت">🔊</button>
       <button id="themeBtn" class="icon-btn" onclick="toggleTheme()" aria-label="تبديل الوضع الفاتح/الداكن" title="الوضع الفاتح / الداكن">☀️</button>
       <button class="logout" onclick="logout()">خروج</button>
     </div>
@@ -311,16 +312,16 @@ window.addEventListener('load',function(){
 </div>
 
 <!-- ملفات JavaScript -->
-<script src="js/supabaseClient.js?v=18"></script>
-<script src="js/cloudData.js?v=18"></script>
-<script src="js/auth.js?v=18"></script>
-<script src="js/lessons.js?v=18"></script>
-<script src="js/exams.js?v=18"></script>
-<script src="js/teacher.js?v=18"></script>
-<script src="js/management.js?v=18"></script>
-<script src="js/guide.js?v=18"></script>
-<script src="js/streak.js?v=18"></script>
-<script src="js/pointer-glow.js?v=18"></script>
-<script src="js/app.js?v=18"></script>
+<script src="js/supabaseClient.js?v=20"></script>
+<script src="js/cloudData.js?v=20"></script>
+<script src="js/auth.js?v=20"></script>
+<script src="js/lessons.js?v=20"></script>
+<script src="js/exams.js?v=20"></script>
+<script src="js/teacher.js?v=20"></script>
+<script src="js/management.js?v=20"></script>
+<script src="js/guide.js?v=20"></script>
+<script src="js/streak.js?v=20"></script>
+<script src="js/pointer-glow.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>

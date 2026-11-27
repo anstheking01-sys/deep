@@ -190,8 +190,11 @@ function startExam(id){
   const db=getDB();
   curExam=db.exams.find(x=>String(x.id)===String(id));
   if(!curExam || !curExam.questions || curExam.questions.length===0){toast('الامتحان فارغ');return;}
-  // Keep source order and option order: the server-side grader uses these indexes.
-  curQuestions=curExam.questions.map(q=>({q:q.q,opts:[...(q.opts||[])],qImageData:q.qImageData||''}));
+  // خلط الأسئلة والاختيارات في كل محاولة. نحتفظ بالفهرس الأصلي (origIdx/perm) لأن المصحح في السيرفر يعتمد عليه.
+  curQuestions=shuffle(curExam.questions.map((q,origIdx)=>{
+    const perm=shuffle((q.opts||[]).map((_,i)=>i));
+    return {origIdx,perm,q:q.q,opts:perm.map(i=>q.opts[i]),qImageData:q.qImageData||''};
+  }));
   curAnswers={};
   examTimeLeft=(curExam.duration||60)*60;
   startTimer();
@@ -252,7 +255,8 @@ function closeExam(){
 async function submitFullExam(){
   clearInterval(examTimerInterval);
   if(!curExam || !currentUser){toast('لا توجد محاولة مفتوحة');return;}
-  const answers=curQuestions.map((q,idx)=>Object.prototype.hasOwnProperty.call(curAnswers,idx)?curAnswers[idx]:null);
+  const answers=new Array(curQuestions.length).fill(null);
+  curQuestions.forEach((qq,idx)=>{if(Object.prototype.hasOwnProperty.call(curAnswers,idx))answers[qq.origIdx]=qq.perm[curAnswers[idx]];});
   showLoading('جاري تصحيح الامتحان وحفظ النتيجة...');
   try{
     const {data,error}=await ensureCloud().rpc('submit_exam',{p_exam_id:String(curExam.id),p_answers:answers});

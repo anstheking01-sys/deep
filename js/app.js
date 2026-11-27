@@ -8,7 +8,12 @@ let curExam = null, curQuestions = [], curAnswers = {}, examTimeLeft = 3600, exa
 
 // مؤثرات صوتية بسيطة باستخدام Web Audio (تعمل بعد أول تفاعل من المستخدم)
 let uiAudioContext=null;
+function soundOn(){try{return localStorage.getItem('deep_sound')!=='off';}catch(e){return true;}}
+function toggleSound(){const on=!soundOn();try{localStorage.setItem('deep_sound',on?'on':'off');}catch(e){}updateSoundBtn();if(on)playTone(660,.12,'sine',.05);}
+function updateSoundBtn(){const b=document.getElementById('soundBtn');if(b)b.textContent=soundOn()?'🔊':'🔇';}
+function playStreakSound(){[523,659,784,1047,1319,1568].forEach((f,i)=>playTone(f,.22,i%2?'triangle':'sine',.055,i*.09));playTone(2093,.5,'sine',.025,.55);}
 function playTone(freq=520,duration=0.07,type='sine',volume=0.035,delay=0){
+  if(!soundOn())return;
   try{
     const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
     uiAudioContext=uiAudioContext||new Ctx();if(uiAudioContext.state==='suspended')uiAudioContext.resume();
@@ -177,6 +182,7 @@ function applyTheme(theme){
   if(theme==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
   const b=document.getElementById('themeBtn');if(b)b.textContent=theme==='light'?'🌙':'☀️';
+  updateSoundBtn();
   const m=document.querySelector('meta[name=theme-color]');if(m)m.content=theme==='light'?'#F3F6FC':'#0A0F1C';
 }
 function toggleTheme(){

@@ -18,6 +18,7 @@ function phoneToEmail(raw){
   const digits=normalizeEgyptPhone(raw).replace(/[^0-9]/g,'');
   return `deep.${digits}@${PHONE_EMAIL_DOMAIN}`;
 }
+function legacyEmail(raw){return `${normalizeEgyptPhone(raw).replace(/[^0-9]/g,'')}@deepinprogramming.app`;}
 function friendlyAuthError(error){
   const m=String(error?.message||'');
   if(/already registered|already been registered|user_already_exists/i.test(m+(error?.code||'')))return 'هذا الرقم مسجَّل بالفعل. سجّل الدخول أو تواصل مع المستر.';
@@ -123,7 +124,12 @@ async function handleLogin(e){
   showLoading('جاري تسجيل الدخول...');
   try{
     const sb=ensureCloud();
-    const {data,error}=await sb.auth.signInWithPassword({email:phoneToEmail(phone),password});
+    let {data,error}=await sb.auth.signInWithPassword({email:phoneToEmail(phone),password});
+    if(error&&/invalid login credentials/i.test(error.message||'')){
+      // حسابات أُنشئت بالشكل القديم: <رقم>@deepinprogramming.app
+      const old=await sb.auth.signInWithPassword({email:legacyEmail(phone),password});
+      if(!old.error){data=old.data;error=null;}
+    }
     if(error)throw error;
     if(!data.user)throw new Error('لم يتم إنشاء جلسة دخول.');
     await loadProfileAndEnter(data.user);
